@@ -624,10 +624,10 @@ process_entry (bup_context_t *bupctx, int bootfd, int gptfd, struct update_entry
 static void
 order_entries (struct update_entry_s *orig, struct update_entry_s **ordered, unsigned int count)
 {
-	int mb1, mb1_b, bct, mb2, mb2_b;
+	int mb1, mb1_b, bct, bct1, bct2, mb2, mb2_b;
 	unsigned int i, j;
 
-	mb1 = mb1_b = bct = mb2 = mb2_b = -1;
+	mb1 = mb1_b = bct = bct1 = bct2 = mb2 = mb2_b = -1;
 	j = 0;
 	for (i = 0; i < count; i++) {
 		if (strcmp(orig[i].partname, "mb1") == 0)
@@ -638,8 +638,14 @@ order_entries (struct update_entry_s *orig, struct update_entry_s **ordered, uns
 			mb2 = i;
 		else if (strcmp(orig[i].partname, "mb2_b") == 0)
 			mb2_b = i;
-		else if (strcmp(orig[i].partname, "BCT") == 0)
-			bct = i;
+		else if (strcmp(orig[i].partname, "BCT") == 0){
+			if (bct == -1)
+				bct = i;
+			else if (bct1 == -1)
+				bct1 = i;
+			else if (bct2 == -1)
+				bct2 = i;
+		}
 		else
 			ordered[j++] = &orig[i];
 	}
@@ -650,6 +656,10 @@ order_entries (struct update_entry_s *orig, struct update_entry_s **ordered, uns
 		ordered[j++] = &orig[mb2_b];
 	if (bct >= 0)
 		ordered[j++] = &orig[bct];
+	if (bct1 >= 0)
+		ordered[j++] = &orig[bct1];
+	if (bct2 >= 0)
+		ordered[j++] = &orig[bct2];
 	if (mb1 >= 0)
 		ordered[j++] = &orig[mb1];
 	if (mb1_b >= 0)
